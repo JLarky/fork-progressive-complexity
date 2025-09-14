@@ -58,14 +58,7 @@ function getSortUrl(): string {
       >
     </span>
   </a>
-  {searchable && <table-header
-    label={label}
-    field={field}
-    sort-by={sort}
-    sort-dir={sortDir}
-    search-term={searchTerm}
-    limit={String(pageSize)}
-    ><form
+  {searchable && <form
       class="search-form flex"
       method="GET"
       action="/"
@@ -95,14 +88,20 @@ function getSortUrl(): string {
         name="sortOrder"
         value={sortDir}
       />
-      <input
-        name="searchTerm"
-        type="search"
-        class="input input-bordered input-xs w-24"
-        placeholder="Search"
-        value={searchTerm}
-        @input=${this.onSearchInput}
-        aria-label={`Search by ${label.toLowerCase()}`}
-      />
-    </form></table-header>}
+      <table-header
+        action-url={getSortUrl()}
+        label={label}
+        field={field}
+        search-term={searchTerm}>
+        <input
+          name="searchTerm"
+          type="search"
+          class="input input-bordered input-xs w-24"
+          placeholder="Search"
+          value={searchTerm}
+          @input=${this.onSearchInput}
+          aria-label={`Search by ${label.toLowerCase()}`}
+        />
+      </table-header>
+    </form>}
 </div>

@@ -11,16 +11,13 @@ export class TableHeader extends LitElement {
   private debounceTimer: number | null = null;
   private _isFirstUpdate = true;
 
+  @property({ type: String, attribute: "action-url" }) actionUrl: string = "";
   @property({ type: String, attribute: "label" }) label: string = "";
   @property({ type: String, attribute: "field" }) field:
     | "name"
     | "price"
     | "quantity" = "name";
-  @property({ type: String, attribute: "sort-by" }) sortBy: string = "id";
-  @property({ type: String, attribute: "sort-dir" }) sortDir: "asc" | "desc" =
-    "asc";
   @property({ type: String, attribute: "search-term" }) searchTerm: string = "";
-  @property({ type: String }) limit: string = "10";
 
   connectedCallback() {
     super.connectedCallback();
@@ -39,9 +36,9 @@ export class TableHeader extends LitElement {
     }
   }
 
-  private buildUrl(params: Record<string, string>): string {
-    const url = new URL(window.location.href);
-    Object.entries(params).forEach(([k, v]) => url.searchParams.set(k, v));
+  private buildUrl(searchTerm: string): string {
+    const url = new URL(window.location.origin + this.actionUrl);
+    url.searchParams.set("searchTerm", searchTerm);
     return url.pathname + url.search;
   }
 
@@ -52,15 +49,9 @@ export class TableHeader extends LitElement {
     if (this.debounceTimer) clearTimeout(this.debounceTimer);
 
     this.debounceTimer = window.setTimeout(() => {
-      const searchForm = this.querySelector(".search-form") as HTMLFormElement;
+      const searchForm = this.closest("form") as HTMLFormElement;
       if (searchForm) {
-        const action = this.buildUrl({
-          searchTerm: this.searchTerm,
-          page: "1",
-          limit: this.limit,
-          sortBy: this.sortBy,
-          sortOrder: this.sortDir,
-        });
+        const action = this.buildUrl(this.searchTerm);
         searchForm.action = action;
 
         const inputEl = searchForm.querySelector(
@@ -96,30 +87,15 @@ export class TableHeader extends LitElement {
 
   render() {
     return html`
-      <form
-        class="search-form flex"
-        method="GET"
-        action="/"
-        hx-get="/"
-        hx-target="#table-wrapper"
-        hx-select="#table-wrapper"
-        hx-swap="outerHTML"
-        hx-push-url="true"
-      >
-        <input type="hidden" name="page" value="1" />
-        <input type="hidden" name="limit" .value=${this.limit} />
-        <input type="hidden" name="sortBy" .value=${this.sortBy} />
-        <input type="hidden" name="sortOrder" .value=${this.sortDir} />
-        <input
-          name="searchTerm"
-          type="search"
-          class="input input-bordered input-xs w-24"
-          placeholder="Search"
-          .value=${this.searchTerm}
-          @input=${this.onSearchInput}
-          aria-label="Search by ${this.label.toLowerCase()}"
-        />
-      </form>
+      <input
+        name="searchTerm"
+        type="search"
+        class="input input-bordered input-xs w-24"
+        placeholder="Search"
+        .value=${this.searchTerm}
+        @input=${this.onSearchInput}
+        aria-label="Search by ${this.label.toLowerCase()}"
+      />
     `;
   }
 }
