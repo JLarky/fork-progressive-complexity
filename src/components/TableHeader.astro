@@ -58,50 +58,55 @@ function getSortUrl(): string {
       >
     </span>
   </a>
-  {searchable && <form
-      class="search-form flex"
-      method="GET"
-      action="/"
-      hx-get="/"
-      hx-target="#table-wrapper"
-      hx-select="#table-wrapper"
-      hx-swap="outerHTML"
-      hx-push-url="true"
-    >
-      <input
-        type="hidden"
-        name="page"
-        value="1"
-      />
-      <input
-        type="hidden"
-        name="limit"
-        value={pageSize}
-      />
-      <input
-        type="hidden"
-        name="sortBy"
-        value={sort}
-      />
-      <input
-        type="hidden"
-        name="sortOrder"
-        value={sortDir}
-      />
-      <table-header
-        action-url={getSortUrl()}
-        label={label}
-        field={field}
-        search-term={searchTerm}>
+  {
+    searchable && (
+      <form
+        class="search-form flex"
+        method="GET"
+        action="/"
+        hx-get="/"
+        hx-target="#table-wrapper"
+        hx-select="#table-wrapper"
+        hx-swap="outerHTML"
+        hx-push-url="true"
+      >
         <input
-          name="searchTerm"
-          type="search"
-          class="input input-bordered input-xs w-24"
-          placeholder="Search"
-          value={searchTerm}
-          @input=${this.onSearchInput}
-          aria-label={`Search by ${label.toLowerCase()}`}
+          type="hidden"
+          name="page"
+          value="1"
         />
-      </table-header>
-    </form>}
+        <input
+          type="hidden"
+          name="limit"
+          value={pageSize}
+        />
+        <input
+          type="hidden"
+          name="sortBy"
+          value={sort}
+        />
+        <input
+          type="hidden"
+          name="sortOrder"
+          value={sortDir}
+        />
+        <table-header
+          action-url={getSortUrl()}
+          label={label}
+          field={field}
+          search-term={searchTerm}
+        >
+          <input
+            name="searchTerm"
+            type="search"
+            class="input input-bordered input-xs w-24"
+            placeholder="Search"
+            value={searchTerm}
+            @input=${this.onSearchInput}
+            aria-label={`Search by ${label.toLowerCase()}`}
+          />
+        </table-header>
+      </form>
+    )
+  }
 </div>
