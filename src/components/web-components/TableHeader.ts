@@ -19,16 +19,21 @@ const TableHeader = liftSolid(elementName, {
 
     if (!inputEl) throw new Error("input not found");
 
-    const onSearchInput = () => {
-      const searchForm = this.closest("form");
-      if (searchForm) {
-        searchForm.requestSubmit();
-      }
-    };
+    const trigger = debounce((cb: () => void) => cb(), 300);
 
-    const trigger = debounce(onSearchInput, 300);
-
-    inputEl.addEventListener("input", trigger, abortController);
+    inputEl.addEventListener(
+      "input",
+      () => {
+        const searchForm = this.closest("form");
+        if (searchForm) {
+          htmx.trigger(searchForm, "htmx:abort");
+          trigger(() => {
+            searchForm.requestSubmit();
+          });
+        }
+      },
+      abortController,
+    );
   },
 });
 
