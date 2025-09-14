@@ -90,10 +90,7 @@ function getSortUrl(): string {
           name="sortOrder"
           value={sortDir}
         />
-        <table-header
-          action-url={getSortUrl()}
-          field={field}
-        >
+        <table-header field={field}>
           <input
             data-target="table-header:input"
             name="searchTerm"
