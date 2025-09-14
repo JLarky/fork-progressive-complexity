@@ -26,7 +26,7 @@ const TableHeader = liftSolid(elementName, {
       () => {
         const searchForm = this.closest("form");
         if (searchForm) {
-          htmx.trigger(searchForm, "htmx:abort");
+          window.htmx.trigger(searchForm, "htmx:abort", undefined);
           trigger(() => {
             searchForm.requestSubmit();
           });
