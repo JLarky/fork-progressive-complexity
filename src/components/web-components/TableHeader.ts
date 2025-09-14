@@ -72,12 +72,12 @@ export class TableHeader extends LitElement {
               newInput.setSelectionRange(pos, pos);
             }
           }, 10);
-          document.body.removeEventListener(
-            "htmx:afterRequest",
-            handleAfterRequest,
-          );
         };
-        document.body.addEventListener("htmx:afterRequest", handleAfterRequest);
+        document.body.addEventListener(
+          "htmx:afterRequest",
+          handleAfterRequest,
+          { once: true },
+        );
 
         searchForm.requestSubmit();
       }
