@@ -1,10 +1,13 @@
 import { liftSolid, useAttributes } from "@lift-html/solid";
+import { createEffect, onCleanup } from "solid-js";
 import { targetRefs } from "@lift-html/incentive";
 import { debounce } from "@solid-primitives/scheduled";
 
 import.meta.hot?.accept();
 
 const elementName = "table-header";
+
+const focusState = new Map<string, number | null>();
 
 const TableHeader = liftSolid(elementName, {
   observedAttributes: ["field"] as const,
@@ -23,28 +26,8 @@ const TableHeader = liftSolid(elementName, {
     if (!inputEl) throw new Error("input not found");
 
     const onSearchInput = () => {
-      const searchForm = this.closest("form") as HTMLFormElement;
+      const searchForm = this.closest("form");
       if (searchForm) {
-        const active = document.activeElement as HTMLInputElement | null;
-        const pos = active === inputEl ? inputEl.selectionStart : null;
-
-        const handleAfterRequest = () => {
-          setTimeout(() => {
-            const newInput = document.querySelector(
-              `table-header[field="${props.field}"] input[name="searchTerm"]`,
-            ) as HTMLInputElement | null;
-            if (newInput && pos !== null) {
-              newInput.focus();
-              newInput.setSelectionRange(pos, pos);
-            }
-          }, 10);
-        };
-        document.body.addEventListener(
-          "htmx:afterRequest",
-          handleAfterRequest,
-          { once: true },
-        );
-
         searchForm.requestSubmit();
       }
     };
@@ -52,6 +35,35 @@ const TableHeader = liftSolid(elementName, {
     const trigger = debounce(onSearchInput, 300);
 
     inputEl.addEventListener("input", trigger, abortController);
+
+    createEffect(() => {
+      const field = props.field;
+      if (!field) throw new Error(elementName + " attribute field is required");
+      const abortController = new AbortController();
+      onCleanup(() => abortController.abort());
+
+      document.body.addEventListener(
+        "htmx:beforeSwap",
+        () => {
+          const active = document.activeElement as HTMLInputElement | null;
+          const pos = active === inputEl ? inputEl.selectionStart : null;
+          focusState.set(field, pos);
+        },
+        abortController,
+      );
+
+      document.body.addEventListener(
+        "htmx:afterSwap",
+        () => {
+          const pos = focusState.get(field) ?? null;
+          if (pos !== null) {
+            inputEl.focus();
+            inputEl.setSelectionRange(pos, pos);
+          }
+        },
+        abortController,
+      );
+    });
   },
 });
 
