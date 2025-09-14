@@ -11,14 +11,98 @@ export type Props = {
 };
 
 const { field, sort, sortDir, searchTerm, pageSize, searchable } = Astro.props;
+
+const label = field === "name" ? "Name" : field === "price" ? "Price" : "Qty";
+const up = sort === field && sortDir === "asc";
+const down = sort === field && sortDir === "desc";
+
+function buildUrl(params: Record<string, string>): string {
+  const url = new URL("http://a");
+  Object.entries(params).forEach(([k, v]) => url.searchParams.set(k, v));
+  return url.pathname + url.search;
+}
+
+function getSortUrl(): string {
+  const dir = sort === field && sortDir === "asc" ? "desc" : "asc";
+  return buildUrl({
+    sortBy: field,
+    sortOrder: dir,
+    page: "1",
+    limit: pageSize.toString(),
+    searchTerm: searchTerm,
+  });
+}
 ---
 
-<table-header
-  label={field === "name" ? "Name" : field === "price" ? "Price" : "Qty"}
-  field={field}
-  sort-by={sort}
-  sort-dir={sortDir}
-  search-term={searchTerm}
-  limit={String(pageSize)}
-  searchable={searchable}
-></table-header>
+<div
+  class:list={[
+    "flex items-center gap-2",
+    field === "name" ? "justify-start" : "justify-end",
+  ]}
+>
+  <a
+    class="btn btn-ghost btn-xs normal-case font-normal cursor-pointer"
+    href={getSortUrl()}
+    hx-get={getSortUrl()}
+    hx-target="#table-wrapper"
+    hx-select="#table-wrapper"
+    hx-swap="outerHTML"
+    hx-push-url="true"
+    aria-label={`Sort by ${label}`}
+  >
+    <span>{label}</span>
+    <span class="flex flex-col ml-1 leading-none text-xs">
+      <span class={up ? "text-primary" : "opacity-50"}>{up ? "▲" : "△"}</span>
+      <span class={down ? "text-primary" : "opacity-50"}
+        >{down ? "▼" : "▽"}</span
+      >
+    </span>
+  </a>
+  {searchable && <table-header
+    label={label}
+    field={field}
+    sort-by={sort}
+    sort-dir={sortDir}
+    search-term={searchTerm}
+    limit={String(pageSize)}
+    ><form
+      class="search-form flex"
+      method="GET"
+      action="/"
+      hx-get="/"
+      hx-target="#table-wrapper"
+      hx-select="#table-wrapper"
+      hx-swap="outerHTML"
+      hx-push-url="true"
+    >
+      <input
+        type="hidden"
+        name="page"
+        value="1"
+      />
+      <input
+        type="hidden"
+        name="limit"
+        value={pageSize}
+      />
+      <input
+        type="hidden"
+        name="sortBy"
+        value={sort}
+      />
+      <input
+        type="hidden"
+        name="sortOrder"
+        value={sortDir}
+      />
+      <input
+        name="searchTerm"
+        type="search"
+        class="input input-bordered input-xs w-24"
+        placeholder="Search"
+        value={searchTerm}
+        @input=${this.onSearchInput}
+        aria-label={`Search by ${label.toLowerCase()}`}
+      />
+    </form></table-header>}
+</div>

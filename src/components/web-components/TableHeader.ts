@@ -16,8 +16,6 @@ export class TableHeader extends LitElement {
     | "name"
     | "price"
     | "quantity" = "name";
-  @property({ type: Boolean, attribute: "searchable", reflect: true })
-  searchable = false;
   @property({ type: String, attribute: "sort-by" }) sortBy: string = "id";
   @property({ type: String, attribute: "sort-dir" }) sortDir: "asc" | "desc" =
     "asc";
@@ -45,18 +43,6 @@ export class TableHeader extends LitElement {
     const url = new URL(window.location.href);
     Object.entries(params).forEach(([k, v]) => url.searchParams.set(k, v));
     return url.pathname + url.search;
-  }
-
-  private getSortUrl(): string {
-    const dir =
-      this.sortBy === this.field && this.sortDir === "asc" ? "desc" : "asc";
-    return this.buildUrl({
-      sortBy: this.field,
-      sortOrder: dir,
-      page: "1",
-      limit: this.limit,
-      searchTerm: this.searchTerm,
-    });
   }
 
   private onSearchInput(e: Event) {
@@ -109,64 +95,31 @@ export class TableHeader extends LitElement {
   }
 
   render() {
-    const up = this.sortBy === this.field && this.sortDir === "asc";
-    const down = this.sortBy === this.field && this.sortDir === "desc";
-
     return html`
-      <div
-        class="flex items-center gap-2 ${this.label === "Name"
-          ? "justify-start"
-          : "justify-end"}"
+      <form
+        class="search-form flex"
+        method="GET"
+        action="/"
+        hx-get="/"
+        hx-target="#table-wrapper"
+        hx-select="#table-wrapper"
+        hx-swap="outerHTML"
+        hx-push-url="true"
       >
-        <a
-          class="btn btn-ghost btn-xs normal-case font-normal cursor-pointer"
-          href=${this.getSortUrl()}
-          hx-get=${this.getSortUrl()}
-          hx-target="#table-wrapper"
-          hx-select="#table-wrapper"
-          hx-swap="outerHTML"
-          hx-push-url="true"
-          aria-label="Sort by ${this.label}"
-        >
-          <span>${this.label}</span>
-          <span class="flex flex-col ml-1 leading-none text-xs">
-            <span class="${up ? "text-primary" : "opacity-50"}"
-              >${up ? "▲" : "△"}</span
-            >
-            <span class="${down ? "text-primary" : "opacity-50"}"
-              >${down ? "▼" : "▽"}</span
-            >
-          </span>
-        </a>
-        ${this.searchable
-          ? html`
-              <form
-                class="search-form flex"
-                method="GET"
-                action="/"
-                hx-get="/"
-                hx-target="#table-wrapper"
-                hx-select="#table-wrapper"
-                hx-swap="outerHTML"
-                hx-push-url="true"
-              >
-                <input type="hidden" name="page" value="1" />
-                <input type="hidden" name="limit" .value=${this.limit} />
-                <input type="hidden" name="sortBy" .value=${this.sortBy} />
-                <input type="hidden" name="sortOrder" .value=${this.sortDir} />
-                <input
-                  name="searchTerm"
-                  type="search"
-                  class="input input-bordered input-xs w-24"
-                  placeholder="Search"
-                  .value=${this.searchTerm}
-                  @input=${this.onSearchInput}
-                  aria-label="Search by ${this.label.toLowerCase()}"
-                />
-              </form>
-            `
-          : null}
-      </div>
+        <input type="hidden" name="page" value="1" />
+        <input type="hidden" name="limit" .value=${this.limit} />
+        <input type="hidden" name="sortBy" .value=${this.sortBy} />
+        <input type="hidden" name="sortOrder" .value=${this.sortDir} />
+        <input
+          name="searchTerm"
+          type="search"
+          class="input input-bordered input-xs w-24"
+          placeholder="Search"
+          .value=${this.searchTerm}
+          @input=${this.onSearchInput}
+          aria-label="Search by ${this.label.toLowerCase()}"
+        />
+      </form>
     `;
   }
 }
