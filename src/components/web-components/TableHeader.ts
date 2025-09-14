@@ -7,7 +7,7 @@ import.meta.hot?.accept();
 
 const elementName = "table-header";
 
-const focusState = new Map<string, number | null>();
+const focusState = new Map<string, { pos: number | null; text: string }>();
 
 const TableHeader = liftSolid(elementName, {
   observedAttributes: ["field"] as const,
@@ -47,7 +47,7 @@ const TableHeader = liftSolid(elementName, {
         () => {
           const active = document.activeElement as HTMLInputElement | null;
           const pos = active === inputEl ? inputEl.selectionStart : null;
-          focusState.set(field, pos);
+          focusState.set(field, { pos, text: inputEl.value });
         },
         abortController,
       );
@@ -55,9 +55,16 @@ const TableHeader = liftSolid(elementName, {
       document.body.addEventListener(
         "htmx:afterSwap",
         () => {
-          const pos = focusState.get(field) ?? null;
+          const { pos, text } = focusState.get(field) ?? {
+            pos: null,
+            text: "",
+          };
           if (pos !== null) {
             inputEl.focus();
+            if (text !== inputEl.value) {
+              inputEl.value = text;
+              trigger();
+            }
             inputEl.setSelectionRange(pos, pos);
           }
         },
