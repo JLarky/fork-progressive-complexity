@@ -1,71 +1,51 @@
-import { LitElement, html } from "lit";
-import { customElement, property } from "lit/decorators.js";
+import { liftSolid, useAttributes } from "@lift-html/solid";
+import { targetRefs } from "@lift-html/incentive";
+import { createSignal } from "solid-js";
+import { debounce } from "@solid-primitives/scheduled";
 
-@customElement("table-header")
-export class TableHeader extends LitElement {
-  // Use light DOM to work properly within table cells
-  protected createRenderRoot() {
-    return this;
-  }
+import.meta.hot?.accept();
 
-  private debounceTimer: number | null = null;
-  private _isFirstUpdate = true;
+const elementName = "table-header";
 
-  @property({ type: String, attribute: "action-url" }) actionUrl: string = "";
-  @property({ type: String, attribute: "label" }) label: string = "";
-  @property({ type: String, attribute: "field" }) field:
-    | "name"
-    | "price"
-    | "quantity" = "name";
-  @property({ type: String, attribute: "search-term" }) searchTerm: string = "";
+const TableHeader = liftSolid(elementName, {
+  observedAttributes: ["action-url", "field"] as const,
+  init(dispose) {
+    const abortController = new AbortController();
+    dispose(() => abortController.abort());
 
-  connectedCallback() {
-    super.connectedCallback();
-    this._isFirstUpdate = true;
-  }
+    const props = useAttributes(this);
 
-  willUpdate() {
-    // Only clear content on first update after connection
-    // This prevents duplication from cached HTML whe a user
-    // presses the back for forward buttons on the browser
-    if (this._isFirstUpdate) {
-      while (this.firstChild) {
-        this.removeChild(this.firstChild);
-      }
-      this._isFirstUpdate = false;
+    const targets = targetRefs(this, {
+      input: HTMLInputElement,
+    });
+
+    const inputEl = targets.input;
+
+    if (!inputEl) throw new Error("input not found");
+
+    const [searchTerm, setSearchTerm] = createSignal("");
+
+    function buildUrl(searchTerm: string): string {
+      const url = new URL(window.location.origin + props["action-url"]);
+      url.searchParams.set("searchTerm", searchTerm);
+      return url.pathname + url.search;
     }
-  }
 
-  private buildUrl(searchTerm: string): string {
-    const url = new URL(window.location.origin + this.actionUrl);
-    url.searchParams.set("searchTerm", searchTerm);
-    return url.pathname + url.search;
-  }
-
-  private onSearchInput(e: Event) {
-    const input = e.target as HTMLInputElement;
-    this.searchTerm = input.value;
-
-    if (this.debounceTimer) clearTimeout(this.debounceTimer);
-
-    this.debounceTimer = window.setTimeout(() => {
+    const onSearchInput = () => {
       const searchForm = this.closest("form") as HTMLFormElement;
       if (searchForm) {
-        const action = this.buildUrl(this.searchTerm);
+        const action = buildUrl(searchTerm()); // read latest value
         searchForm.action = action;
 
-        const inputEl = searchForm.querySelector(
-          'input[name="searchTerm"]',
-        ) as HTMLInputElement | null;
-        if (inputEl) inputEl.value = this.searchTerm;
+        inputEl.value = searchTerm();
 
         const active = document.activeElement as HTMLInputElement | null;
-        const pos = active === input ? input.selectionStart : null;
+        const pos = active === inputEl ? inputEl.selectionStart : null;
 
         const handleAfterRequest = () => {
           setTimeout(() => {
             const newInput = document.querySelector(
-              `table-header[field="${this.field}"] input[name="searchTerm"]`,
+              `table-header[field="${props.field}"] input[name="searchTerm"]`,
             ) as HTMLInputElement | null;
             if (newInput && pos !== null) {
               newInput.focus();
@@ -81,21 +61,25 @@ export class TableHeader extends LitElement {
 
         searchForm.requestSubmit();
       }
-      this.debounceTimer = null;
-    }, 300);
-  }
+    };
 
-  render() {
-    return html`
-      <input
-        name="searchTerm"
-        type="search"
-        class="input input-bordered input-xs w-24"
-        placeholder="Search"
-        .value=${this.searchTerm}
-        @input=${this.onSearchInput}
-        aria-label="Search by ${this.label.toLowerCase()}"
-      />
-    `;
+    const trigger = debounce(onSearchInput, 300);
+
+    inputEl.addEventListener(
+      "input",
+      () => {
+        setSearchTerm(inputEl.value);
+        trigger();
+      },
+      abortController,
+    );
+  },
+});
+
+declare module "@lift-html/core" {
+  interface KnownElements {
+    [elementName]: typeof TableHeader & {
+      props: { "action-url": string; field: string };
+    };
   }
 }

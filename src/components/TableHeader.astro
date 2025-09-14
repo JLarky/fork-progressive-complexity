@@ -92,17 +92,15 @@ function getSortUrl(): string {
         />
         <table-header
           action-url={getSortUrl()}
-          label={label}
           field={field}
-          search-term={searchTerm}
         >
           <input
+            data-target="table-header:input"
             name="searchTerm"
             type="search"
             class="input input-bordered input-xs w-24"
             placeholder="Search"
             value={searchTerm}
-            @input=${this.onSearchInput}
             aria-label={`Search by ${label.toLowerCase()}`}
           />
         </table-header>

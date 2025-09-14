@@ -9,12 +9,6 @@ export default defineConfig({
   integrations: [tailwind()],
   
   vite: {
-    optimizeDeps: {
-      include: ["lit"],
-    },
-    ssr: {
-      noExternal: ["lit"],
-    },
     build: {
       // CSS optimization
       cssCodeSplit: true,
