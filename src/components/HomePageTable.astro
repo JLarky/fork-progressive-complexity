@@ -2,6 +2,7 @@
 import ProductRow from "./ProductRow.astro";
 import type { ProductWithCurrency } from "../lib/store";
 import type { Product, SortOrder } from "../types";
+import TableHeader from "./TableHeader.astro";
 
 export interface Props {
   data: ProductWithCurrency[];
@@ -33,35 +34,32 @@ const nextHref = `/?page=${nextPage}&limit=${pageSize}&sortBy=${sort}&sortOrder=
         <tr>
           <th>ID</th>
           <th>
-            <table-header
-              label="Name"
+            <TableHeader
               field="name"
-              sort-by={sort}
-              sort-dir={sortDir}
-              search-term={searchTerm}
-              limit={String(pageSize)}
+              sort={sort}
+              sortDir={sortDir}
+              searchTerm={searchTerm}
+              pageSize={pageSize}
               searchable
-            ></table-header>
+            />
           </th>
           <th class="right">
-            <table-header
-              label="Price"
+            <TableHeader
               field="price"
-              sort-by={sort}
-              sort-dir={sortDir}
-              search-term={searchTerm}
-              limit={String(pageSize)}
-            ></table-header>
+              sort={sort}
+              sortDir={sortDir}
+              searchTerm={searchTerm}
+              pageSize={pageSize}
+            />
           </th>
           <th class="right">
-            <table-header
-              label="Qty"
+            <TableHeader
               field="quantity"
-              sort-by={sort}
-              sort-dir={sortDir}
-              search-term={searchTerm}
-              limit={String(pageSize)}
-            ></table-header>
+              sort={sort}
+              sortDir={sortDir}
+              searchTerm={searchTerm}
+              pageSize={pageSize}
+            />
           </th>
           <th class="right">Subtotal</th>
           <th>Actions</th>

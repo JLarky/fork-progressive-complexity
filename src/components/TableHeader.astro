@@ -1,0 +1,24 @@
+---
+import type { Product, SortOrder } from "../types";
+
+export type Props = {
+  field: "name" | "price" | "quantity";
+  sort: keyof Product | "subtotal";
+  sortDir: SortOrder;
+  searchTerm: string;
+  pageSize: number;
+  searchable?: boolean;
+};
+
+const { field, sort, sortDir, searchTerm, pageSize, searchable } = Astro.props;
+---
+
+<table-header
+  label={field === "name" ? "Name" : field === "price" ? "Price" : "Qty"}
+  field={field}
+  sort-by={sort}
+  sort-dir={sortDir}
+  search-term={searchTerm}
+  limit={String(pageSize)}
+  searchable={searchable}
+></table-header>
